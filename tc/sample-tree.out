@@ -1,0 +1,7 @@
+eth0 -0- pfifo_fast bands 3 priomap 1 2 2 2 2 1 2 0 0 1 1 1 1 1 1
+dummy0 -1-+- htb r2q 10 
+          +-10--10 sfq 
+          +-20--2000-+- prio
+          |           +-1--8002 sfq
+          |           \-2--8003 pfifo
+          \-30--3000 red
