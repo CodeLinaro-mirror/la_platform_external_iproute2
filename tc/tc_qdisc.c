@@ -25,8 +25,6 @@
 #include "tc_util.h"
 #include "tc_common.h"
 
-static int usage(void);
-
 static int usage(void)
 {
 	fprintf(stderr, "Usage: tc qdisc [ add | del | replace | change | show ] dev STRING\n");
@@ -162,16 +160,39 @@ int tc_qdisc_modify(int cmd, unsigned flags, int argc, char **argv)
 
 static int filter_ifindex;
 
-int print_qdisc(const struct sockaddr_nl *who,
-		       struct nlmsghdr *n,
-		       void *arg)
+static int store_qdisc(const struct sockaddr_nl *who,
+		       struct nlmsghdr *n, void *arg)
+{
+	struct node **root = arg;
+	struct tcmsg *t = NLMSG_DATA(n);
+	int len = n->nlmsg_len;
+
+	if (n->nlmsg_type != RTM_NEWQDISC) {
+		fprintf(stderr, "Not a new qdisc\n");
+		return 0;
+	}
+
+	len -= NLMSG_LENGTH(sizeof(*t));
+	if (len < 0) {
+		fprintf(stderr, "Wrong len %d\n", len);
+		return -1;
+	}
+
+	if (filter_ifindex && filter_ifindex != t->tcm_ifindex)
+		return 0;
+
+	return insert_tree(root, t, TCA_RTA(t), len);
+
+}
+
+static void print_qdisc_attr(FILE *fp, struct rtattr *tb[]);
+
+int print_qdisc(const struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 {
 	FILE *fp = (FILE*)arg;
 	struct tcmsg *t = NLMSG_DATA(n);
 	int len = n->nlmsg_len;
 	struct rtattr * tb[TCA_MAX+1];
-	struct qdisc_util *q;
-	char abuf[256];
 
 	if (n->nlmsg_type != RTM_NEWQDISC && n->nlmsg_type != RTM_DELQDISC) {
 		fprintf(stderr, "Not a qdisc\n");
@@ -197,20 +218,32 @@ int print_qdisc(const struct sockaddr_nl *who,
 	if (n->nlmsg_type == RTM_DELQDISC)
 		fprintf(fp, "deleted ");
 
-	fprintf(fp, "qdisc %s %x: ", (char*)RTA_DATA(tb[TCA_KIND]), t->tcm_handle>>16);
+	fprintf(fp, "qdisc %s %x: ", (char*)RTA_DATA(tb[TCA_KIND]),
+		t->tcm_handle >> 16);
 	if (filter_ifindex == 0)
 		fprintf(fp, "dev %s ", ll_index_to_name(t->tcm_ifindex));
 	if (t->tcm_parent == TC_H_ROOT)
 		fprintf(fp, "root ");
 	else if (t->tcm_parent) {
+		char abuf[256];
 		print_tc_classid(abuf, sizeof(abuf), t->tcm_parent);
 		fprintf(fp, "parent %s ", abuf);
 	}
+
 	if (t->tcm_info != 1) {
 		fprintf(fp, "refcnt %d ", t->tcm_info);
 	}
-	/* pfifo_fast is generic enough to warrant the hardcoding --JHS */
 
+	print_qdisc_attr(fp, tb);
+	fflush(fp);
+	return 0;
+}
+
+static void print_qdisc_attr(FILE *fp, struct rtattr *tb[])
+{
+	struct qdisc_util *q;
+
+	/* pfifo_fast is generic enough to warrant the hardcoding --JHS */
 	if (0 == strcmp("pfifo_fast", RTA_DATA(tb[TCA_KIND])))
 		q = get_qdisc_kind("prio");
 	else
@@ -222,7 +255,6 @@ int print_qdisc(const struct sockaddr_nl *who,
 		else
 			fprintf(fp, "[cannot parse qdisc parameters]");
 	}
-	fprintf(fp, "\n");
 	if (show_stats) {
 		struct rtattr *xstats = NULL;
 
@@ -236,15 +268,30 @@ int print_qdisc(const struct sockaddr_nl *who,
 			fprintf(fp, "\n");
 		}
 	}
-	fflush(fp);
-	return 0;
+	fprintf(fp, "\n");
 }
 
+static void show_qdisc(const struct node *n)
+{
+	struct rtattr * tb[TCA_MAX+1];
+
+	memset(tb, 0, sizeof(tb));
+	parse_rtattr(tb, TCA_MAX, n->tca, n->len);
+
+	if (tb[TCA_KIND] == NULL) {
+		printf("???\n");
+		return;
+	}
+	printf("%s ", (char*) RTA_DATA(tb[TCA_KIND]));
+
+	print_qdisc_attr(stdout, tb);
+}
 
 int tc_qdisc_list(int argc, char **argv)
 {
 	struct tcmsg t;
 	char d[16];
+	int errs;
 
 	memset(&t, 0, sizeof(t));
 	t.tcm_family = AF_UNSPEC;
@@ -287,12 +334,19 @@ int tc_qdisc_list(int argc, char **argv)
 		return 1;
 	}
 
- 	if (rtnl_dump_filter(&rth, print_qdisc, stdout, NULL, NULL) < 0) {
-		fprintf(stderr, "Dump terminated\n");
-		return 1;
-	}
+	if (show_tree) {
+		struct node *root = NULL;
 
-	return 0;
+		errs = rtnl_dump_filter(&rth, store_qdisc, &root, NULL, NULL);
+		print_tree(root, show_qdisc);
+		free_tree(root);
+	} else
+		errs = rtnl_dump_filter(&rth, print_qdisc, stdout, NULL, NULL);
+
+	if (errs)
+		fprintf(stderr, "Dump terminated\n");
+
+	return errs;
 }
 
 int do_qdisc(int argc, char **argv)

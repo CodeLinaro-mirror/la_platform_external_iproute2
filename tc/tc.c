@@ -33,6 +33,7 @@
 int show_stats = 0;
 int show_details = 0;
 int show_raw = 0;
+int show_tree = 0;
 int resolve_hosts = 0;
 int use_iec = 0;
 int force = 0;
@@ -273,6 +274,8 @@ int main(int argc, char **argv)
 			++show_details;
 		} else if (matches(argv[1], "-raw") == 0) {
 			++show_raw;
+		} else if (matches(argv[1], "-tree") == 0) {
+			++show_tree;
 		} else if (matches(argv[1], "-Version") == 0) {
 			printf("tc utility, iproute2-ss%s\n", SNAPSHOT);
 			return 0;

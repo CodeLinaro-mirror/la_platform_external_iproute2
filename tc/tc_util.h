@@ -84,4 +84,20 @@ extern int  tc_print_ipt(FILE *f, const struct rtattr *tb);
 extern int  parse_action(int *, char ***, int, struct nlmsghdr *);
 extern void print_tm(FILE *f, const struct tcf_t *tm);
 
+
+struct node {
+	struct node	*next;
+	int		ifindex;
+	int		len;
+	uint32_t	parent;
+	uint32_t	handle;
+	uint32_t	info;
+	struct rtattr	tca[];
+};
+
+extern int insert_tree(struct node **root, const struct tcmsg *t,
+		       const struct rtattr *tb, int len);
+extern void free_tree(struct node *root);
+extern void print_tree(struct node *root, void (*display)(const struct node *));
+
 #endif

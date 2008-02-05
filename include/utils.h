@@ -13,6 +13,7 @@ extern int preferred_family;
 extern int show_stats;
 extern int show_details;
 extern int show_raw;
+extern int show_tree;
 extern int resolve_hosts;
 extern int oneline;
 extern int timestamp;
