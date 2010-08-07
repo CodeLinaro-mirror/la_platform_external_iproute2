@@ -30,6 +30,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <linux/xfrm.h>
+#include <netinet/in.h>
 #include "utils.h"
 #include "xfrm.h"
 #include "ip_common.h"
