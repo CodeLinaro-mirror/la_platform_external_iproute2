@@ -5,7 +5,7 @@ LOCAL_SRC_FILES :=  tc.c tc_qdisc.c q_cbq.c tc_util.c tc_class.c tc_core.c m_act
                     m_estimator.c tc_filter.c tc_monitor.c tc_stab.c tc_cbq.c \
                     tc_estimator.c f_u32.c m_police.c q_ingress.c m_mirred.c q_htb.c
 
-ifneq (, $(filter msm8660_surf msm8660_csfb, $(QCOM_TARGET_PRODUCT)))
+ifeq ($(QCOM_TARGET_PRODUCT),msm8660_csfb)
   LOCAL_MODULE := tc_disable
 else
   LOCAL_MODULE := tc
