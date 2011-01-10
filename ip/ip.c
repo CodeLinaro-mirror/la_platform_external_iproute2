@@ -30,8 +30,10 @@ int resolve_hosts = 0;
 int oneline = 0;
 int timestamp = 0;
 char * _SL_ = NULL;
+#ifndef ANDROID
 char *batch_file = NULL;
 int force = 0;
+#endif
 struct rtnl_handle rth = { .fd = -1 };
 
 static void usage(void) __attribute__((noreturn));
@@ -40,12 +42,18 @@ static void usage(void)
 {
 	fprintf(stderr,
 "Usage: ip [ OPTIONS ] OBJECT { COMMAND | help }\n"
+#ifndef ANDROID
 "       ip [ -force ] -batch filename\n"
+#endif
 "where  OBJECT := { link | addr | addrlabel | route | rule | neigh | ntable |\n"
 "                   tunnel | maddr | mroute | monitor | xfrm }\n"
 "       OPTIONS := { -V[ersion] | -s[tatistics] | -d[etails] | -r[esolve] |\n"
 "                    -f[amily] { inet | inet6 | ipx | dnet | link } |\n"
-"                    -o[neline] | -t[imestamp] | -b[atch] [filename] |\n"
+"                    -o[neline] | -t[imestamp] |"
+#ifndef ANDROID
+" -b[atch] [filename] |"
+#endif
+"\n"
 "                    -rc[vbuf] [size]}\n");
 	exit(-1);
 }
@@ -91,6 +99,7 @@ static int do_cmd(const char *argv0, int argc, char **argv)
 	return -1;
 }
 
+#ifndef ANDROID
 static int batch(const char *name)
 {
 	char *line = NULL;
@@ -132,6 +141,7 @@ static int batch(const char *name)
 	rtnl_close(&rth);
 	return ret;
 }
+#endif
 
 
 int main(int argc, char **argv)
@@ -201,6 +211,7 @@ int main(int argc, char **argv)
 		} else if (matches(opt, "-Version") == 0) {
 			printf("ip utility, iproute2-ss%s\n", SNAPSHOT);
 			exit(0);
+#ifndef ANDROID
 		} else if (matches(opt, "-force") == 0) {
 			++force;
 		} else if (matches(opt, "-batch") == 0) {
@@ -209,6 +220,7 @@ int main(int argc, char **argv)
 			if (argc <= 1)
 				usage();
 			batch_file = argv[1];
+#endif
 		} else if (matches(opt, "-rcvbuf") == 0) {
 			unsigned int size;
 
@@ -233,8 +245,10 @@ int main(int argc, char **argv)
 
 	_SL_ = oneline ? "\\" : "\n" ;
 
+#ifndef ANDROID
 	if (batch_file)
 		return batch(batch_file);
+#endif
 
 	if (rtnl_open(&rth, 0) < 0)
 		exit(1);
