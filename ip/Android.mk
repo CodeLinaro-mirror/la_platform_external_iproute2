@@ -16,4 +16,6 @@ LOCAL_SHARED_LIBRARIES := libiprouteutil libnetlink libdl
 
 LOCAL_MODULE := ip
 
+LOCAL_MODULE_TAGS := optional
+
 include $(BUILD_EXECUTABLE)
