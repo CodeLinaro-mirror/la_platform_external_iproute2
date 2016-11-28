@@ -48,12 +48,11 @@ static void usage(void) __attribute__((noreturn));
 static void usage(void)
 {
 	fprintf(stderr, "Usage: ip -f inet6 tunnel { add | change | del | show } [ NAME ]\n");
-	fprintf(stderr, "          [ mode { ip6ip6 | ipip6 | ip6gre | any } ]\n");
+	fprintf(stderr, "          [ mode { ip6ip6 | ipip6 | any } ]\n");
 	fprintf(stderr, "          [ remote ADDR local ADDR ] [ dev PHYS_DEV ]\n");
 	fprintf(stderr, "          [ encaplimit ELIM ]\n");
 	fprintf(stderr ,"          [ hoplimit TTL ] [ tclass TCLASS ] [ flowlabel FLOWLABEL ]\n");
 	fprintf(stderr, "          [ dscp inherit ]\n");
-	fprintf(stderr, "          [ [i|o]seq ] [ [i|o]key KEY ] [ [i|o]csum ]\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Where: NAME      := STRING\n");
 	fprintf(stderr, "       ADDR      := IPV6_ADDRESS\n");
@@ -63,11 +62,10 @@ static void usage(void)
 		DEFAULT_TNL_HOP_LIMIT);
 	fprintf(stderr, "       TOS       := { 0x0..0xff | inherit }\n");
 	fprintf(stderr, "       FLOWLABEL := { 0x0..0xfffff | inherit }\n");
-	fprintf(stderr, "       KEY       := { DOTTED_QUAD | NUMBER }\n");
 	exit(-1);
 }
 
-static void print_tunnel(struct ip6_tnl_parm2 *p)
+static void print_tunnel(struct ip6_tnl_parm *p)
 {
 	char remote[64];
 	char local[64];
@@ -106,29 +104,9 @@ static void print_tunnel(struct ip6_tnl_parm2 *p)
 
 	if (p->flags & IP6_TNL_F_RCV_DSCP_COPY)
 		printf(" dscp inherit");
-
-	if (p->proto == IPPROTO_GRE) {
-		if ((p->i_flags&GRE_KEY) && (p->o_flags&GRE_KEY) && p->o_key == p->i_key)
-			printf(" key %u", ntohl(p->i_key));
-		else if ((p->i_flags|p->o_flags)&GRE_KEY) {
-			if (p->i_flags&GRE_KEY)
-				printf(" ikey %u ", ntohl(p->i_key));
-			if (p->o_flags&GRE_KEY)
-				printf(" okey %u ", ntohl(p->o_key));
-		}
-
-		if (p->i_flags&GRE_SEQ)
-			printf("%s  Drop packets out of sequence.\n", _SL_);
-		if (p->i_flags&GRE_CSUM)
-			printf("%s  Checksum in received packet is required.", _SL_);
-		if (p->o_flags&GRE_SEQ)
-			printf("%s  Sequence packets on output.", _SL_);
-		if (p->o_flags&GRE_CSUM)
-			printf("%s  Checksum output packets.", _SL_);
-	}
 }
 
-static int parse_args(int argc, char **argv, int cmd, struct ip6_tnl_parm2 *p)
+static int parse_args(int argc, char **argv, int cmd, struct ip6_tnl_parm *p)
 {
 	int count = 0;
 	char medium[IFNAMSIZ];
@@ -146,9 +124,6 @@ static int parse_args(int argc, char **argv, int cmd, struct ip6_tnl_parm2 *p)
 				 strcmp(*argv, "ipip6") == 0 ||
 				 strcmp(*argv, "ip4ip6") == 0)
 				p->proto = IPPROTO_IPIP;
-			else if (strcmp(*argv, "ip6gre") == 0 ||
-				 strcmp(*argv, "gre/ipv6") == 0)
-				p->proto = IPPROTO_GRE;
 			else if (strcmp(*argv, "any/ipv6") == 0 ||
 				 strcmp(*argv, "any") == 0)
 				p->proto = 0;
@@ -224,60 +199,6 @@ static int parse_args(int argc, char **argv, int cmd, struct ip6_tnl_parm2 *p)
 			if (strcmp(*argv, "inherit") != 0)
 				invarg("not inherit", *argv);
 			p->flags |= IP6_TNL_F_RCV_DSCP_COPY;
-		} else if (strcmp(*argv, "key") == 0) {
-			unsigned uval;
-			NEXT_ARG();
-			p->i_flags |= GRE_KEY;
-			p->o_flags |= GRE_KEY;
-			if (strchr(*argv, '.'))
-				p->i_key = p->o_key = get_addr32(*argv);
-			else {
-				if (get_unsigned(&uval, *argv, 0)<0) {
-					fprintf(stderr, "invalid value of \"key\"\n");
-					exit(-1);
-				}
-				p->i_key = p->o_key = htonl(uval);
-			}
-		} else if (strcmp(*argv, "ikey") == 0) {
-			unsigned uval;
-			NEXT_ARG();
-			p->i_flags |= GRE_KEY;
-			if (strchr(*argv, '.'))
-				p->i_key = get_addr32(*argv);
-			else {
-				if (get_unsigned(&uval, *argv, 0)<0) {
-					fprintf(stderr, "invalid value of \"ikey\"\n");
-					exit(-1);
-				}
-				p->i_key = htonl(uval);
-			}
-		} else if (strcmp(*argv, "okey") == 0) {
-			unsigned uval;
-			NEXT_ARG();
-			p->o_flags |= GRE_KEY;
-			if (strchr(*argv, '.'))
-				p->o_key = get_addr32(*argv);
-			else {
-				if (get_unsigned(&uval, *argv, 0)<0) {
-					fprintf(stderr, "invalid value of \"okey\"\n");
-					exit(-1);
-				}
-				p->o_key = htonl(uval);
-			}
-		} else if (strcmp(*argv, "seq") == 0) {
-			p->i_flags |= GRE_SEQ;
-			p->o_flags |= GRE_SEQ;
-		} else if (strcmp(*argv, "iseq") == 0) {
-			p->i_flags |= GRE_SEQ;
-		} else if (strcmp(*argv, "oseq") == 0) {
-			p->o_flags |= GRE_SEQ;
-		} else if (strcmp(*argv, "csum") == 0) {
-			p->i_flags |= GRE_CSUM;
-			p->o_flags |= GRE_CSUM;
-		} else if (strcmp(*argv, "icsum") == 0) {
-			p->i_flags |= GRE_CSUM;
-		} else if (strcmp(*argv, "ocsum") == 0) {
-			p->o_flags |= GRE_CSUM;
 		} else {
 			if (strcmp(*argv, "name") == 0) {
 				NEXT_ARG();
@@ -288,7 +209,7 @@ static int parse_args(int argc, char **argv, int cmd, struct ip6_tnl_parm2 *p)
 				duparg2("name", *argv);
 			strncpy(p->name, *argv, IFNAMSIZ - 1);
 			if (cmd == SIOCCHGTUNNEL && count == 0) {
-				struct ip6_tnl_parm2 old_p;
+				struct ip6_tnl_parm old_p;
 				memset(&old_p, 0, sizeof(old_p));
 				if (tnl_get_ioctl(*argv, &old_p))
 					return -1;
@@ -306,7 +227,7 @@ static int parse_args(int argc, char **argv, int cmd, struct ip6_tnl_parm2 *p)
 	return 0;
 }
 
-static void ip6_tnl_parm_init(struct ip6_tnl_parm2 *p, int apply_default)
+static void ip6_tnl_parm_init(struct ip6_tnl_parm *p, int apply_default)
 {
 	memset(p, 0, sizeof(*p));
 	p->proto = IPPROTO_IPV6;
@@ -320,8 +241,8 @@ static void ip6_tnl_parm_init(struct ip6_tnl_parm2 *p, int apply_default)
  * @p1: user specified parameter
  * @p2: database entry
  */
-static int ip6_tnl_parm_match(const struct ip6_tnl_parm2 *p1,
-			      const struct ip6_tnl_parm2 *p2)
+static int ip6_tnl_parm_match(const struct ip6_tnl_parm *p1,
+			      const struct ip6_tnl_parm *p2)
 {
 	return ((!p1->link || p1->link == p2->link) &&
 		(!p1->name[0] || strcmp(p1->name, p2->name) == 0) &&
@@ -339,7 +260,7 @@ static int ip6_tnl_parm_match(const struct ip6_tnl_parm2 *p1,
 		(!p1->flags || (p1->flags & p2->flags)));
 }
 
-static int do_tunnels_list(struct ip6_tnl_parm2 *p)
+static int do_tunnels_list(struct ip6_tnl_parm *p)
 {
 	char buf[512];
 	int err = -1;
@@ -363,7 +284,7 @@ static int do_tunnels_list(struct ip6_tnl_parm2 *p)
 			rx_fifo, rx_frame,
 			tx_bytes, tx_packets, tx_errs, tx_drops,
 			tx_fifo, tx_colls, tx_carrier, rx_multi;
-		struct ip6_tnl_parm2 p1;
+		struct ip6_tnl_parm p1;
 		char *ptr;
 
 		buf[sizeof(buf) - 1] = '\0';
@@ -388,12 +309,10 @@ static int do_tunnels_list(struct ip6_tnl_parm2 *p)
 			fprintf(stderr, "Failed to get type of [%s]\n", name);
 			continue;
 		}
-		if (type != ARPHRD_TUNNEL6 && type != ARPHRD_IP6GRE)
+		if (type != ARPHRD_TUNNEL6)
 			continue;
 		memset(&p1, 0, sizeof(p1));
 		ip6_tnl_parm_init(&p1, 0);
-		if (type == ARPHRD_IP6GRE)
-			p1.proto = IPPROTO_GRE;
 		strcpy(p1.name, name);
 		p1.link = ll_name_to_index(p1.name);
 		if (p1.link == 0)
@@ -424,7 +343,7 @@ static int do_tunnels_list(struct ip6_tnl_parm2 *p)
 
 static int do_show(int argc, char **argv)
 {
-        struct ip6_tnl_parm2 p;
+        struct ip6_tnl_parm p;
 
 	ll_init_map(&rth);
 	ip6_tnl_parm_init(&p, 0);
@@ -447,44 +366,28 @@ static int do_show(int argc, char **argv)
 
 static int do_add(int cmd, int argc, char **argv)
 {
-	struct ip6_tnl_parm2 p;
+	struct ip6_tnl_parm p;
 
 	ip6_tnl_parm_init(&p, 1);
 
 	if (parse_args(argc, argv, cmd, &p) < 0)
 		return -1;
 
-	switch (p.proto) {
-	case IPPROTO_IPIP:
-	case IPPROTO_IPV6:
-		return tnl_add_ioctl(cmd, "ip6tnl0", p.name, &p);
-	case IPPROTO_GRE:
-		return tnl_add_ioctl(cmd, "ip6gre0", p.name, &p);
-	default:
-		fprintf(stderr, "cannot determine tunnel mode (ip6ip6, ipip6 or gre)\n");
-	}
-	return -1;
+	return tnl_add_ioctl(cmd,
+			     cmd == SIOCCHGTUNNEL && p.name[0] ?
+			     p.name : "ip6tnl0", p.name, &p);
 }
 
 static int do_del(int argc, char **argv)
 {
-	struct ip6_tnl_parm2 p;
+	struct ip6_tnl_parm p;
 
 	ip6_tnl_parm_init(&p, 1);
 
 	if (parse_args(argc, argv, SIOCDELTUNNEL, &p) < 0)
 		return -1;
 
-	switch (p.proto) {
-	case IPPROTO_IPIP:
-	case IPPROTO_IPV6:
-		return tnl_del_ioctl("ip6tnl0", p.name, &p);
-	case IPPROTO_GRE:
-		return tnl_del_ioctl("ip6gre0", p.name, &p);
-	default:
-		return tnl_del_ioctl(p.name, p.name, &p);
-	}
-	return -1;
+	return tnl_del_ioctl(p.name[0] ? p.name : "ip6tnl0", p.name, &p);
 }
 
 int do_ip6tunnel(int argc, char **argv)
