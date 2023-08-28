@@ -87,5 +87,8 @@ cc_defaults {
         "-DNO_SHARED_LIBS",
 
         "-Dstrdupa(__S)=strcpy(alloca(strlen(__S) + 1), __S)",
+        "-fcommon", //ld.lld: error: duplicate symbol filter: external/iproute2/ip/ipmroute.c:53 and external/iproute2/ip/ipxfrm.c:44
+        //ld.lld: error: duplicate symbol listen_all_nsid: external/iproute2/ip/ipmonitor.c:29 and external/iproute2/ip/xfrm_monitor.c:37
+        //Fixed upstream so we enable -fcommon locally
     ],
 }
