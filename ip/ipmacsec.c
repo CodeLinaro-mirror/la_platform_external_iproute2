@@ -653,7 +653,7 @@ static void print_txsc_stats(const char *prefix, struct rtattr *attr)
 	if (!attr || show_stats == 0)
 		return;
 
-	parse_rtattr_nested(stats, MACSEC_TXSC_STATS_ATTR_MAX + 1, attr);
+	parse_rtattr_nested(stats, MACSEC_TXSC_STATS_ATTR_MAX, attr);
 	printf("%sstats:", prefix);
 
 	for (i = 1; i < NUM_MACSEC_TXSC_STATS_ATTR; i++) {
@@ -692,7 +692,7 @@ static void print_secy_stats(const char *prefix, struct rtattr *attr)
 	if (!attr || show_stats == 0)
 		return;
 
-	parse_rtattr_nested(stats, MACSEC_SECY_STATS_ATTR_MAX + 1, attr);
+	parse_rtattr_nested(stats, MACSEC_SECY_STATS_ATTR_MAX, attr);
 	printf("%sstats:", prefix);
 
 	for (i = 1; i < NUM_MACSEC_SECY_STATS_ATTR; i++) {
@@ -728,7 +728,7 @@ static void print_rxsa_stats(const char *prefix, struct rtattr *attr)
 	if (!attr || show_stats == 0)
 		return;
 
-	parse_rtattr_nested(stats, MACSEC_SA_STATS_ATTR_MAX + 1, attr);
+	parse_rtattr_nested(stats, MACSEC_SA_STATS_ATTR_MAX, attr);
 	printf("%s%s  ", prefix, prefix);
 
 	for (i = 1; i < NUM_MACSEC_SA_STATS_ATTR; i++) {
@@ -760,7 +760,7 @@ static void print_txsa_stats(const char *prefix, struct rtattr *attr)
 	if (!attr || show_stats == 0)
 		return;
 
-	parse_rtattr_nested(stats, MACSEC_SA_STATS_ATTR_MAX + 1, attr);
+	parse_rtattr_nested(stats, MACSEC_SA_STATS_ATTR_MAX, attr);
 	printf("%s%s   %s %s\n", prefix, prefix,
 	       txsa_stats_names[MACSEC_SA_STATS_ATTR_OUT_PKTS_PROTECTED],
 	       txsa_stats_names[MACSEC_SA_STATS_ATTR_OUT_PKTS_ENCRYPTED]);
@@ -790,7 +790,7 @@ static void print_tx_sc(const char *prefix, __u64 sci, __u8 encoding_sa,
 		SPRINT_BUF(keyid);
 		bool state;
 
-		parse_rtattr_nested(sa_attr, MACSEC_SA_ATTR_MAX + 1, a);
+		parse_rtattr_nested(sa_attr, MACSEC_SA_ATTR_MAX, a);
 		state = rta_getattr_u8(sa_attr[MACSEC_SA_ATTR_ACTIVE]);
 		printf("%s%s%d: PN %u, state %s, key %s\n", prefix, prefix,
 		       rta_getattr_u8(sa_attr[MACSEC_SA_ATTR_AN]),
@@ -824,7 +824,7 @@ static void print_rxsc_stats(const char *prefix, struct rtattr *attr)
 	if (!attr || show_stats == 0)
 		return;
 
-	parse_rtattr_nested(stats, MACSEC_RXSC_STATS_ATTR_MAX + 1, attr);
+	parse_rtattr_nested(stats, MACSEC_RXSC_STATS_ATTR_MAX, attr);
 	printf("%sstats:", prefix);
 	for (i = 1; i < NUM_MACSEC_RXSC_STATS_ATTR; i++) {
 		if (!rxsc_stats_names[i])
@@ -859,7 +859,7 @@ static void print_rx_sc(const char *prefix, __u64 sci, __u8 active,
 		SPRINT_BUF(keyid);
 		bool state;
 
-		parse_rtattr_nested(sa_attr, MACSEC_SA_ATTR_MAX + 1, a);
+		parse_rtattr_nested(sa_attr, MACSEC_SA_ATTR_MAX, a);
 		state = rta_getattr_u8(sa_attr[MACSEC_SA_ATTR_ACTIVE]);
 		printf("%s%s%d: PN %u, state %s, key %s\n", prefix, prefix,
 		       rta_getattr_u8(sa_attr[MACSEC_SA_ATTR_AN]),
@@ -902,7 +902,7 @@ static int process(const struct sockaddr_nl *who, struct nlmsghdr *n,
 	}
 
 	ifindex = rta_getattr_u32(attrs[MACSEC_ATTR_IFINDEX]);
-	parse_rtattr_nested(attrs_secy, MACSEC_SECY_ATTR_MAX + 1,
+	parse_rtattr_nested(attrs_secy, MACSEC_SECY_ATTR_MAX,
 			    attrs[MACSEC_ATTR_SECY]);
 
 	if (!validate_secy_dump(attrs_secy)) {
@@ -935,7 +935,7 @@ static int process(const struct sockaddr_nl *who, struct nlmsghdr *n,
 	for (c = RTA_DATA(sc); RTA_OK(c, rem); c = RTA_NEXT(c, rem)) {
 		struct rtattr *sc_attr[MACSEC_RXSC_ATTR_MAX + 1];
 
-		parse_rtattr_nested(sc_attr, MACSEC_RXSC_ATTR_MAX + 1, c);
+		parse_rtattr_nested(sc_attr, MACSEC_RXSC_ATTR_MAX, c);
 		print_rx_sc("    ",
 			    rta_getattr_u64(sc_attr[MACSEC_RXSC_ATTR_SCI]),
 			    rta_getattr_u32(sc_attr[MACSEC_RXSC_ATTR_ACTIVE]),
