@@ -52,7 +52,6 @@ static struct qdisc_util *qdisc_list;
 static struct filter_util *filter_list;
 
 #ifdef ANDROID
-extern struct qdisc_util cbq_qdisc_util;
 extern struct qdisc_util htb_qdisc_util;
 extern struct qdisc_util ingress_qdisc_util;
 extern struct filter_util u32_filter_util;
@@ -120,9 +119,7 @@ struct qdisc_util *get_qdisc_kind(const char *str)
 	struct qdisc_util *q;
 
 #ifdef ANDROID
-	if (!strcmp(str, "cbq"))
-		return &cbq_qdisc_util;
-	else if (!strcmp(str, "htb"))
+	if (!strcmp(str, "htb"))
 		return &htb_qdisc_util;
 	else if (!strcmp(str, "ingress"))
 		return &ingress_qdisc_util;
