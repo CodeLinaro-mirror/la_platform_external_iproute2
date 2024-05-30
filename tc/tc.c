@@ -55,7 +55,6 @@ static struct filter_util *filter_list;
 extern struct qdisc_util htb_qdisc_util;
 extern struct qdisc_util ingress_qdisc_util;
 extern struct filter_util u32_filter_util;
-extern struct qdisc_util multiq_qdisc_util;
 #ifdef FEATURE_PRIO
 extern struct filter_util fw_filter_util;
 extern struct qdisc_util prio_qdisc_util;
@@ -123,8 +122,6 @@ struct qdisc_util *get_qdisc_kind(const char *str)
 		return &htb_qdisc_util;
 	else if (!strcmp(str, "ingress"))
 		return &ingress_qdisc_util;
-	else if (!strcmp(str, "multiq"))
-		return &multiq_qdisc_util;
 #ifdef FEATURE_PRIO
 	else if (!strcmp(str, "pfifo_fast"))
 		return &pfifo_fast_qdisc_util;
