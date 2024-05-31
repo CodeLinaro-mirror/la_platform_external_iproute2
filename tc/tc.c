@@ -54,7 +54,6 @@ static struct filter_util *filter_list;
 #ifdef ANDROID
 extern struct qdisc_util htb_qdisc_util;
 extern struct qdisc_util ingress_qdisc_util;
-extern struct filter_util u32_filter_util;
 #endif
 
 static int print_noqopt(struct qdisc_util *qu, FILE *f,
@@ -164,14 +163,6 @@ struct filter_util *get_filter_kind(const char *str)
 	void *dlh;
 	char buf[256];
 	struct filter_util *q;
-#ifdef ANDROID
-	if (!strcmp(str, "u32"))
-		return &u32_filter_util;
-	else {
-		fprintf(stderr, "Android does not support filter '%s'\n", str);
-		return NULL;
-	}
-#endif
 
 	for (q = filter_list; q; q = q->next)
 		if (strcmp(q->id, str) == 0)
