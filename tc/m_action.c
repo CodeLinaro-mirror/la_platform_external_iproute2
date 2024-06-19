@@ -29,10 +29,6 @@
 #include "tc_util.h"
 
 static struct action_util *action_list;
-#ifdef ANDROID
-extern struct action_util mirred_action_util;
-extern struct action_util skbedit_action_util;
-#endif
 
 #ifdef CONFIG_GACT
 int gact_ld; /* f*ckin backward compatibility */
@@ -89,16 +85,6 @@ static int parse_noaopt(struct action_util *au, int *argc_p, char ***argv_p, int
 
 static struct action_util *get_action_kind(char *str)
 {
-#ifdef ANDROID
-	if (!strcmp(str, "mirred")) {
-		return &mirred_action_util;
-	} else if (!strcmp(str, "skbedit")) {
-		return &skbedit_action_util;
-	} else {
-		fprintf(stderr, "Android does not support action '%s'", str);
-		return NULL;
-	}
-#endif
 	static void *aBODY;
 	void *dlh;
 	char buf[256];
