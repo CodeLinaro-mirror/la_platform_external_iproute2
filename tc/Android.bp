@@ -52,7 +52,7 @@ genrule {
 
 genrule {
     name: "emp_ematch.yacc.h",
-    cmd: "M4=$(location m4) $(location bison) -y --defines=$(genDir)/emp_ematch.yacc.h --output=$(genDir)/emp_ematch.yacc.c $(in)",
+    cmd: "M4=$(location m4) $(location bison) -y --defines=$(genDir)/emp_ematch.yacc.h $(in)",
     out: ["emp_ematch.yacc.h"],
     srcs: ["emp_ematch.y"],
     tools: [
