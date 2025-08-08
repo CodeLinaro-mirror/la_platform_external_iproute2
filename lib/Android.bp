@@ -33,6 +33,7 @@ cc_library_shared {
     name: "libiprouteutil",
     defaults: ["iproute2_defaults"],
 
+    recovery_available: true,
     system_shared_libs: [
         "libc",
         "libdl",
@@ -71,6 +72,7 @@ cc_library_shared {
     name: "libnetlink",
     defaults: ["iproute2_defaults"],
 
+    recovery_available: true,
     system_shared_libs: ["libc"],
     srcs: [
         "ll_map.c",

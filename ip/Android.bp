@@ -99,6 +99,7 @@ cc_binary {
         "xfrm_state.c",
     ],
 
+    recovery_available: true,
     shared_libs: [
         "libiprouteutil",
         "libnetlink",
