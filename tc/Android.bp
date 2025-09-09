@@ -136,6 +136,8 @@ cc_binary {
         "q_gred.c",
         "q_red.c",
         "q_sfq.c",
+        "q_cbs.c",
+        "q_etf.c",
     ],
 
     shared_libs: [
