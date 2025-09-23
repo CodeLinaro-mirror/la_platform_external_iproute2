@@ -122,4 +122,6 @@ int prio_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt);
 int cls_names_init(char *path);
 void cls_names_uninit(void);
 
+#define CLOCKID_INVALID (-1)
+int get_clockid(__s32 *val, const char *arg);
 #endif
