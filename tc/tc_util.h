@@ -124,4 +124,5 @@ void cls_names_uninit(void);
 
 #define CLOCKID_INVALID (-1)
 int get_clockid(__s32 *val, const char *arg);
+const char *get_clock_name(clockid_t clockid);
 #endif

@@ -78,6 +78,18 @@ int get_clockid(__s32 *val, const char *arg)
 	return -1;
 }
 
+const char *get_clock_name(clockid_t clockid)
+{
+	const struct clockid_table *c;
+
+	for (c = clockt_map; c->name; c++) {
+		if (clockid == c->clockid)
+			return c->name;
+	}
+
+	return "invalid";
+}
+
 int cls_names_init(char *path)
 {
 	int ret;
