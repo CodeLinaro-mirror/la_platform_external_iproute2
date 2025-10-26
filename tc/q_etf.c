@@ -18,6 +18,7 @@
 
 #include "utils.h"
 #include "tc_util.h"
+#include "json_print.h"
 
 static void explain(void)
 {
@@ -123,6 +124,17 @@ static int etf_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 	qopt = RTA_DATA(tb[TCA_ETF_PARMS]);
 	if (RTA_PAYLOAD(tb[TCA_ETF_PARMS])  < sizeof(*qopt))
 		return -1;
+
+	print_string(PRINT_ANY, "clockid", "clockid %s ",
+	     get_clock_name(qopt->clockid));
+
+	print_uint(PRINT_ANY, "delta", "delta %d ", qopt->delta);
+	print_string(PRINT_ANY, "offload", "offload %s ",
+				(qopt->flags & TC_ETF_OFFLOAD_ON) ? "on" : "off");
+	print_string(PRINT_ANY, "deadline_mode", "deadline_mode %s ",
+				(qopt->flags & TC_ETF_DEADLINE_MODE_ON) ? "on" : "off");
+	print_string(PRINT_ANY, "skip_sock_check", "skip_sock_check %s",
+				(qopt->flags & TC_ETF_SKIP_SOCK_CHECK) ? "on" : "off");
 
 	return 0;
 }

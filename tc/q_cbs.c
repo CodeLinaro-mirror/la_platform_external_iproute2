@@ -16,6 +16,7 @@
 
 #include "utils.h"
 #include "tc_util.h"
+#include "json_print.h"
 
 static void explain(void)
 {
@@ -119,6 +120,12 @@ static int cbs_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 	qopt = RTA_DATA(tb[TCA_CBS_PARMS]);
 	if (RTA_PAYLOAD(tb[TCA_CBS_PARMS])  < sizeof(*qopt))
 		return -1;
+
+	print_int(PRINT_ANY, "hicredit", "hicredit %d ", qopt->hicredit);
+	print_int(PRINT_ANY, "locredit", "locredit %d ", qopt->locredit);
+	print_int(PRINT_ANY, "sendslope", "sendslope %d ", qopt->sendslope);
+	print_int(PRINT_ANY, "idleslope", "idleslope %d ", qopt->idleslope);
+	print_int(PRINT_ANY, "offload", "offload %d ", qopt->offload);
 
 	return 0;
 }
