@@ -151,6 +151,8 @@ cc_binary {
         "-Wno-missing-field-initializers",
         "-Wno-unneeded-internal-declaration",
         "-Wno-gnu-variable-sized-type-not-at-end",
+        "-DCONFIG_GACT",
+        "-DCONFIG_GACT_PROB",
     ],
 
     // This is a work around for b/18403920
