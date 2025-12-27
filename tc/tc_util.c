@@ -36,6 +36,60 @@ static struct db_names *cls_names;
 
 #define NAMES_DB "/etc/iproute2/tc_cls"
 
+/*
+ * Limited list of clockid's
+ * Since these are the ones the kernel qdisc can use
+ * because they are available via ktim_get
+ */
+static const struct clockid_table {
+	const char *name;
+	clockid_t clockid;
+} clockt_map[] = {
+#ifdef CLOCK_BOOTTIME
+	{ "BOOTTIME", CLOCK_BOOTTIME },
+#endif
+#ifdef CLOCK_MONOTONIC
+	{ "MONOTONIC", CLOCK_MONOTONIC },
+#endif
+#ifdef CLOCK_REALTIME
+	{ "REALTIME", CLOCK_REALTIME },
+#endif
+
+	{ "TAI", CLOCK_TAI },
+
+	{ NULL }
+};
+
+int get_clockid(__s32 *val, const char *arg)
+{
+	const struct clockid_table *c;
+
+	/* skip prefix if present */
+	if (strcasestr(arg, "CLOCK_") != NULL)
+		arg += sizeof("CLOCK_") - 1;
+
+	for (c = clockt_map; c->name; c++) {
+		if (strcasecmp(c->name, arg) == 0) {
+			*val = c->clockid;
+			return 0;
+		}
+	}
+
+	return -1;
+}
+
+const char *get_clock_name(clockid_t clockid)
+{
+	const struct clockid_table *c;
+
+	for (c = clockt_map; c->name; c++) {
+		if (clockid == c->clockid)
+			return c->name;
+	}
+
+	return "invalid";
+}
+
 int cls_names_init(char *path)
 {
 	int ret;

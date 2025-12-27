@@ -138,6 +138,8 @@ cc_binary {
         "q_gred.c",
         "q_red.c",
         "q_sfq.c",
+        "q_cbs.c",
+        "q_etf.c",
     ],
 
     shared_libs: [
@@ -149,6 +151,8 @@ cc_binary {
         "-Wno-missing-field-initializers",
         "-Wno-unneeded-internal-declaration",
         "-Wno-gnu-variable-sized-type-not-at-end",
+        "-DCONFIG_GACT",
+        "-DCONFIG_GACT_PROB",
     ],
 
     // This is a work around for b/18403920
